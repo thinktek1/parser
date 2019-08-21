@@ -1,0 +1,31 @@
+import requests
+from bs4 import BeautifulSoup
+from urllib.request import urlretrieve
+import re
+
+# 目標頁面
+
+res = requests.get('https://www.ptt.cc/bbs/Beauty/index2109.html',cookies={'over18':'1'})
+#print(res.text)
+soup = BeautifulSoup(res.text, 'lxml')
+#print(soup)
+# 使用迴圈進入到目標頁面中的每個主題頁面
+articles=soup.select('.r-ent a')
+for article in articles:
+    url = 'https://www.ptt.cc' + article['href']
+    #print(article,url)
+    res = requests.get(url,cookies={'over18':'1'})
+    soup = BeautifulSoup(res.text, 'lxml')
+    #print(soup)
+
+    # 判斷網址中有沒有圖片，如果有就開始下載
+    #pp=len(soup.findAll('a', {'href': re.compile('http:\/\/i\.imgur\.com\/.*')}))
+    if len(soup.findAll('a', {'href': re.compile('http:\/\/i\.imgur\.com\/.*')})) > 0:
+        #print("1")
+        for index, img_url in enumerate(soup.findAll('a', {'href': re.compile('http:\/\/i\.imgur\.com\/.*')})):
+            try:
+                # 記得更改想要下載到的位置
+
+                urlretrieve(img_url['href'], 'D:\{}_{}.jpg'.format(article.text, index))
+            except:
+                print('{} {}_{}.jpg 下載失敗!'.format(img_url['href'], article.text, index))
